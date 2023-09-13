@@ -64,14 +64,50 @@ When using this starter, you can customize the default Exposed configuration by 
 Example:
 
 ```kotlin
+import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
+import org.jetbrains.exposed.sql.DatabaseConfig
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
+
 @Configuration
+@ImportAutoConfiguration(
+    value = [ExposedAutoConfiguration::class],
+    exclude = [DataSourceTransactionManagerAutoConfiguration::class]
+)
 class ExposedConfig {
-  @Bean
-  fun databaseConfig() = DatabaseConfig {
-    useNestedTransactions = true
-  }
+    @Bean
+    fun databaseConfig() = DatabaseConfig {
+        useNestedTransactions = true
+    }
 }
 ```
+In addition to applying the `ExposedAutoConfiguration` class, it is recommended that the `DataSourceTransactionManagerAutoConfiguration` class be excluded from auto-configuration.
+This can be done as part of a custom configuration, as shown above.
+
+Alternatively, auto-configuration can be detailed directly on the Spring configuration class that is annotated using `@SpringBootApplication`:
+
+```kotlin
+import org.jetbrains.exposed.spring.autoconfigure.ExposedAutoConfiguration
+import org.springframework.boot.autoconfigure.ImportAutoConfiguration
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+import org.springframework.boot.runApplication
+
+@SpringBootApplication
+@ImportAutoConfiguration(
+    value = [ExposedAutoConfiguration::class],
+    exclude = [DataSourceTransactionManagerAutoConfiguration::class]
+)
+class MyApplication
+
+fun main(args: Array<String>) {
+    runApplication<MyApplication>(*args)
+}
+```
+
+See the [official documentation](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using.auto-configuration.disabling-specific) for more options to exclude auto-configuration classes.
 
 ## Automatic Schema Creation
 This starter will create the database schema if enabled automatically using any class that extends `org.jetbrains.exposed.sql.Table`
